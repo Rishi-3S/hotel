@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hotel Menu</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #e0e0e0;
+    }
+    .container {
+        max-width: 600px;
+        margin: 40px auto;
+        padding: 20px;
+        background-color: #fff;
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+    h2, h3 {
+        text-align: center;
+        color: #333;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+    }
+    th, td {
+        padding: 12px 15px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+    }
+    th {
+        background-color: #f7f7f7;
+    }
+    input[type="number"], select {
+        width: calc(100% - 24px);
+        padding: 10px;
+        margin: 8px 0;
+        box-sizing: border-box;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+    input[type="submit"], button {
+        width: 100%;
+        padding: 12px;
+        margin: 8px 0;
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+    }
+    input[type="submit"]:hover, button:hover {
+        background-color: #45a049;
+    }
+    #tipSection {
+        margin-top: 20px;
+    }
+    #tipSection label {
+        display: block;
+        margin-bottom: 8px;
+    }
+    #tipAmount {
+        display: inline-block;
+        width: calc(100% - 24px);
+        padding: 10px;
+        margin: 8px 0;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+    #totalAmount {
+        margin-top: 20px;
+        font-size: 18px;
+        text-align: center;
+        color: #333;
+        font-weight: bold;
+    }
+    @media (max-width: 600px) {
+        .container {
+            padding: 10px;
+        }
+        th, td {
+            padding: 8px;
+        }
+        input[type="number"], select, input[type="submit"], button, #tipAmount {
+            width: calc(100% - 16px);
+        }
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Hotel Menu</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>SL.No</th>
+                <th>ITEM NAME</th>
+                <th>Price</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>1</td>
+                <td>IDLY</td>
+                <td>20</td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>DOSA</td>
+                <td>50</td>
+            </tr>
+            <tr>
+                <td>3</td>
+                <td>COFFEE</td>
+                <td>10</td>
+            </tr>
+            <tr>
+                <td>4</td>
+                <td>TEA</td>
+                <td>8</td>
+            </tr>
+            <tr>
+                <td>5</td>
+                <td>WATER BOTTLE</td>
+                <td>20</td>
+            </tr>
+            <tr>
+                <td>6</td>
+                <td>VADA</td>
+                <td>35</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <form id="orderForm">
+        <label for="item">Select Item:</label>
+        <select id="item" name="item">
+            <option value="1">IDLY</option>
+            <option value="2">DOSA</option>
+            <option value="3">COFFEE</option>
+            <option value="4">TEA</option>
+            <option value="5">WATER BOTTLE</option>
+            <option value="6">VADA</option>
+        </select>
+        <label for="quantity">Quantity:</label>
+        <input type="number" id="quantity" name="quantity" min="1" value="1">
+        <input type="submit" value="Add to Cart">
+    </form>
+
+    <div id="billDetails">
+        <h3>Billing Details</h3>
+        <table id="billTable">
+            <thead>
+                <tr>
+                    <th>ITEM NAME</th>
+                    <th>Price</th>
+                    <th>Quantity</th>
+                    <th>Subtotal</th>
+                </tr>
+            </thead>
+            <tbody id="billItems"></tbody>
+        </table>
+    </div>
+
+    <div id="tipSection">
+        <label for="tip">Would you like to give a Tip?</label>
+        <input type="checkbox" id="tip" name="tip" value="yes">
+        <input type="number" id="tipAmount" name="tipAmount" placeholder="Enter Tip Amount" style="display: none;">
+        <button id="calculateTotal">Calculate Total</button>
+        <div id="totalAmount"></div>
+    </div>
+
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const orderForm = document.getElementById('orderForm');
+        const billItems = document.getElementById('billItems');
+        const tipCheckbox = document.getElementById('tip');
+        const tipAmountInput = document.getElementById('tipAmount');
+        const totalAmountDiv = document.getElementById('totalAmount');
+        const calculateTotalBtn = document.getElementById('calculateTotal');
+
+        let grandTotal = 0;
+
+        orderForm.addEventListener('submit', function (event) {
+            event.preventDefault();
+            const item = parseInt(orderForm.item.value);
+            const quantity = parseInt(orderForm.quantity.value);
+            const itemName = orderForm.item.options[orderForm.item.selectedIndex].text;
+            const price = getPrice(item);
+            const subtotal = price * quantity;
+            grandTotal += subtotal;
+            const row = `<tr>
+                            <td>${itemName}</td>
+                            <td>${price}</td>
+                            <td>${quantity}</td>
+                            <td>${subtotal}</td>
+                        </tr>`;
+            billItems.insertAdjacentHTML('beforeend', row);
+        });
+
+        tipCheckbox.addEventListener('change', function () {
+            if (tipCheckbox.checked) {
+                tipAmountInput.style.display = 'inline';
+            } else {
+                tipAmountInput.style.display = 'none';
+            }
+        });
+
+        calculateTotalBtn.addEventListener('click', function () {
+            let tipAmount = 0;
+            if (tipCheckbox.checked) {
+                tipAmount = parseInt(tipAmountInput.value) || 0;
+            }
+            const serviceCharge = Math.ceil(grandTotal / 10);
+            let message = '';
+
+            if (tipAmount >= serviceCharge) {
+                grandTotal += tipAmount;
+                message = `<p>Tip Amount: ${tipAmount}</p>`;
+            } else {
+                grandTotal += serviceCharge;
+                message = `<p>Service Charge: ${serviceCharge}</p>`;
+            }
+
+            totalAmountDiv.innerHTML = `${message}<p>Grand Total: ${grandTotal}</p>`;
+        });
+
+        function getPrice(itemId) {
+            switch (itemId) {
+                case 1: return 20;
+                case 2: return 50;
+                case 3: return 10;
+                case 4: return 8;
+                case 5: return 20;
+                case 6: return 35;
+                default: return 0;
+            }
+        }
+    });
+</script>
+
+</body>
+</html>
